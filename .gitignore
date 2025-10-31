@@ -1,0 +1,18 @@
+# Node
+backend-node/node_modules/
+backend-node/package-lock.json
+
+# Python
+backend-fastapi/__pycache__/
+backend-fastapi/venv/
+
+# Environment / secrets
+.env
+*.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
