@@ -5,7 +5,7 @@ const cors = require('cors');              // Allows frontend (Angular) to conne
 const bcrypt = require('bcrypt');          // For hashing passwords
 const jwt = require('jsonwebtoken');       // For generating login tokens
 const pool = require('./db');              // PostgreSQL connection
-
+const axios=require('axios');
 
 //  Basic app setup
 
@@ -34,7 +34,7 @@ app.post('/api/auth/register', async (req, res) => {
     //Return the created user (without password)
     res.json({ user: result.rows[0] });
   } catch (error) {
-  console.error('Registration error details:', error); // 👈 this shows exact DB error
+  console.error('Registration error details:', error); // this shows exact DB error
   if (error.code === '23505') {  // unique violation
     res.status(400).json({ error: 'Email already registered!' });
   } else {
@@ -89,28 +89,46 @@ function authenticateToken(req, res, next) {
 
 // Add Investment (secured route)
 
-app.post('/api/investments', authenticateToken, async (req, res) => {
+
+
+// Add investment route (with analytics integration)
+app.post("/api/investments", authenticateToken, async (req, res) => {
   const { asset_name, asset_type, units, purchase_price, current_price } = req.body;
   const userId = req.user.id;
 
   try {
-    //  Insert the investment for the logged-in user
-    const result = await pool.query(
-      `INSERT INTO investments (user_id, asset_name, asset_type, units, purchase_price, current_price)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [userId, asset_name, asset_type, units, purchase_price, current_price]
-    );
+    //Insert new investment into database
+    const insertQuery = `
+      INSERT INTO investments (user_id, asset_name, asset_type, units, purchase_price, current_price)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+    const { rows } = await pool.query(insertQuery, [userId, asset_name, asset_type, units, purchase_price, current_price]);
 
-    res.json({ investment: result.rows[0] });
+    //Fetch all investments for that user
+    const allInvestments = await pool.query("SELECT * FROM investments WHERE user_id = $1", [userId]);
+
+    //  Send investments to FastAPI for analytics
+    const response = await axios.post("http://127.0.0.1:8000/analyze", {
+      user_id: userId,
+      investments: allInvestments.rows
+    });
+
+    //Return the analytics result along with new investment
+    res.json({
+      message: "Investment added successfully",
+      investment: rows[0],
+      analytics: response.data
+    });
+
   } catch (error) {
-    console.error('Error adding investment:', error);
-    res.status(500).json({ error: 'Failed to add investment' });
+    console.error("Error adding investment:", error.message);
+    res.status(500).json({ error: "Failed to add investment" });
   }
 });
 
 
 //  Fetch All Investments
-
 app.get('/api/investments', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   try {
