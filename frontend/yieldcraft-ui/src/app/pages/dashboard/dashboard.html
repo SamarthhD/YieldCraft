@@ -1,0 +1,50 @@
+<h2>Dashboard</h2>
+
+<form (ngSubmit)="addInvestment()">
+  <label>Asset Name:</label>
+  <input type="text" [(ngModel)]="asset_name" name="asset_name" required>
+
+  <label>Asset Type:</label>
+  <input type="text" [(ngModel)]="asset_type" name="asset_type" required>
+
+  <label>Units:</label>
+  <input type="number" [(ngModel)]="units" name="units" required>
+
+  <label>Purchase Price:</label>
+  <input type="number" [(ngModel)]="purchase_price" name="purchase_price" required>
+
+  <label>Current Price:</label>
+  <input type="number" [(ngModel)]="current_price" name="current_price" required>
+
+  <button type="submit">Add Investment</button>
+</form>
+
+<p>{{ message }}</p>
+
+<h3>Your Investments</h3>
+
+<table border="1" *ngIf="investments.length > 0">
+  <thead>
+    <tr>
+      <th>Asset Name</th>
+      <th>Type</th>
+      <th>Units</th>
+      <th>Purchase Price</th>
+      <th>Current Price</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let inv of investments">
+      <td>{{ inv.asset_name }}</td>
+      <td>{{ inv.asset_type }}</td>
+      <td>{{ inv.units }}</td>
+      <td>{{ inv.purchase_price }}</td>
+      <td>{{ inv.current_price }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Analytics</h3>
+<pre>{{ analytics | json }}</pre>
+
+<button (click)="logout()">Logout</button>

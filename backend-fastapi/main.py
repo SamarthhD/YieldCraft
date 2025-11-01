@@ -2,11 +2,16 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
 import statistics
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize FastAPI app
-app = FastAPI(title="YieldCraft Analytics Service")
+app = FastAPI(title=os.getenv("APP_NAME", "YieldCraft Analytics Service"))
 
-# Investment model (represents one record)
+# Model for an investment record
 class Investment(BaseModel):
     id: int
     user_id: int
@@ -16,12 +21,12 @@ class Investment(BaseModel):
     purchase_price: float
     current_price: float
 
-# Request body model
+# Model for request body
 class AnalyzeRequest(BaseModel):
     user_id: int
     investments: List[Investment]
 
-# Endpoint to analyze portfolio data
+# Analyze endpoint
 @app.post("/analyze")
 def analyze_portfolio(req: AnalyzeRequest):
     investments = req.investments
@@ -51,7 +56,7 @@ def analyze_portfolio(req: AnalyzeRequest):
         "risk": risk
     }
 
-# Health check route
+# Health check
 @app.get("/")
 def root():
-    return {"message": "Analytics API running"}
+    return {"message": f"{os.getenv('APP_NAME')} running in {os.getenv('ENV')} mode"}

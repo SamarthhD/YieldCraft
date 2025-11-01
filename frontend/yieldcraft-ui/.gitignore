@@ -1,15 +1,23 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
+# FRONTEND (Angular) 
 # Compiled output
 /dist
 /tmp
 /out-tsc
 /bazel-out
 
-# Node
+# Node modules
 /node_modules
 npm-debug.log
 yarn-error.log
+
+# Angular cache
+/.angular/cache
+
+# Testing
+/coverage
+/libpeerconnection.log
+testem.log
+/__screenshots__/
 
 # IDEs and editors
 .idea/
@@ -29,15 +37,46 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
-.sass-cache/
 /connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
 /typings
-__screenshots__/
+.sass-cache/
 
 # System files
 .DS_Store
 Thumbs.db
+
+# BACKEND (Node.js) 
+backend-node/node_modules/
+backend-node/*.log
+backend-node/.env
+backend-node/.env.local
+backend-node/.env.production
+
+# Logs and temp
+*.log
+*.pid
+*.pid.lock
+
+# BACKEND (Python / FastAPI) 
+backend-fastapi/venv/
+backend-fastapi/__pycache__/
+backend-fastapi/*.pyc
+backend-fastapi/.env
+backend-fastapi/.env.local
+backend-fastapi/.env.production
+
+# DATABASE / DOCKER 
+data/
+postgres-data/
+docker-data/
+*.pid
+*.seed
+
+# ENVIRONMENT FILES 
+.env
+.env.*
+!.env.example
+
+# BUILD / DEPLOY 
+dist/
+build/
