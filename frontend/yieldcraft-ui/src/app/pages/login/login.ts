@@ -9,7 +9,8 @@ import { environment } from '../../../environments/environment';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, HttpClientModule],
-  templateUrl: './login.html'
+  templateUrl: './login.html',
+  styleUrls: ['./login.css']
 })
 export class LoginComponent implements OnInit {
   email = '';
@@ -40,5 +41,8 @@ export class LoginComponent implements OnInit {
           console.error('Login error:', err);
         }
       });
+  }
+   goToRegister() {
+    this.router.navigate(['/register']);
   }
 }

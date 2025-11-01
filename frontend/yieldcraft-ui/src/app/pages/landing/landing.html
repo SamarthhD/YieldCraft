@@ -1,5 +1,25 @@
-<h1>Welcome to YieldCraft</h1>
-<p>Track your investments smartly.</p>
+<div class="landing-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #e3f2fd, #bbdefb); text-align: center; padding: 20px;">
+  <mat-card style="padding: 40px 60px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); background-color: white;">
+    <h1 style="font-size: 2.5rem; color: #1565c0; font-weight: 600; margin-bottom: 15px;">
+      Welcome to YieldCraft
+    </h1>
 
-<button (click)="goToLogin()">Login</button>
-<button (click)="goToRegister()">Register</button>
+    <p style="font-size: 1.2rem; color: #424242; margin-bottom: 30px;">
+      Track and analyze your investments with smart, data-driven insights.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 16px;">
+      <button mat-raised-button color="primary" (click)="goToLogin()" style="padding: 10px 24px; font-weight: 500;">
+        Login
+      </button>
+
+      <button mat-stroked-button color="accent" (click)="goToRegister()" style="padding: 10px 24px; font-weight: 500;">
+        Register
+      </button>
+    </div>
+  </mat-card>
+
+  <p style="margin-top: 40px; color: #757575; font-size: 0.9rem;">
+    © {{ currentYear }} YieldCraft. All rights reserved.
+  </p>
+</div>
