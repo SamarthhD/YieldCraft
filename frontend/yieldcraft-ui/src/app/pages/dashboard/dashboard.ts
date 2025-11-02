@@ -4,32 +4,42 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { NgApexchartsModule } from 'ng-apexcharts';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { NgApexchartsModule, ChartComponent } from 'ng-apexcharts';
 import { environment } from '../../../environments/environment';
-type ApexChart = {
-  type: string;
-  width?: number;
-};
 
-type ApexResponsive = {
-  breakpoint: number;
-  options: {
-    chart: { width?: number };
-    legend: { position: string };
-  };
-};
+// ApexCharts types
+import {
+  ApexChart,
+  ApexNonAxisChartSeries,
+  ApexResponsive,
+  ApexLegend
+} from 'ng-apexcharts';
 
-type ChartOptions = {
-  series: number[];
+export interface ChartOptions {
+  series: ApexNonAxisChartSeries;
   chart: ApexChart;
   labels: string[];
   responsive: ApexResponsive[];
-};
+  legend: ApexLegend;
+}
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatCardModule, NgApexchartsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatTableModule,
+    NgApexchartsModule
+  ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -42,15 +52,16 @@ export class DashboardComponent implements OnInit {
   message = '';
   analytics: any = null;
   investments: any[] = [];
+  displayedColumns: string[] = ['asset_name', 'asset_type', 'units', 'purchase_price', 'current_price'];
 
-  // ApexChart Config
-  chartOptions: Partial<ChartOptions> | any = {
-    series: [],
+  // Non-optional chart config
+  chartOptions: ChartOptions = {
+    series: [0],
     chart: {
       type: 'pie',
       width: 380
     },
-    labels: [],
+    labels: ['No Data'],
     responsive: [
       {
         breakpoint: 480,
@@ -59,16 +70,17 @@ export class DashboardComponent implements OnInit {
           legend: { position: 'bottom' }
         }
       }
-    ]
+    ],
+    legend: { position: 'bottom' }
   };
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.fetchInvestments();
   }
 
-  fetchInvestments() {
+  fetchInvestments(): void {
     const token = localStorage.getItem('token');
     if (!token) {
       this.router.navigate(['/login']);
@@ -76,31 +88,33 @@ export class DashboardComponent implements OnInit {
     }
 
     const headers = { Authorization: `Bearer ${token}` };
-    this.http.get<any>(`${environment.apiBaseUrl}/investments`, { headers })
-      .subscribe({
-        next: (data) => {
-          this.investments = data.investments || data;
-          this.updateChart();
-        },
-        error: (err) => {
-          console.error('Error fetching investments:', err);
-        }
-      });
+
+    this.http.get<any>(`${environment.apiBaseUrl}/investments`, { headers }).subscribe({
+      next: (data) => {
+        this.investments = data.investments || [];
+        this.updateChart();
+      },
+      error: (err) => console.error('Error fetching investments:', err)
+    });
   }
 
-  updateChart() {
-    if (!this.investments.length) return;
-    const grouped: Record<string, number> = {};
+  updateChart(): void {
+    if (!this.investments.length) {
+      this.chartOptions.series = [0];
+      this.chartOptions.labels = ['No Data'];
+      return;
+    }
 
-    this.investments.forEach(inv => {
-      grouped[inv.asset_type] = (grouped[inv.asset_type] || 0) + (inv.units * inv.current_price);
-    });
+    const grouped: Record<string, number> = {};
+    for (const inv of this.investments) {
+      grouped[inv.asset_type] = (grouped[inv.asset_type] || 0) + inv.units * inv.current_price;
+    }
 
     this.chartOptions.series = Object.values(grouped);
     this.chartOptions.labels = Object.keys(grouped);
   }
 
-  addInvestment() {
+  addInvestment(): void {
     const token = localStorage.getItem('token');
     if (!token) {
       this.router.navigate(['/login']);
@@ -120,21 +134,29 @@ export class DashboardComponent implements OnInit {
       current_price: this.current_price
     };
 
-    this.http.post<any>(`${environment.apiBaseUrl}/investments`, body, { headers })
-      .subscribe({
-        next: (res) => {
-          this.message = res.message;
-          this.analytics = res.analytics;
-          this.fetchInvestments();
-        },
-        error: (err) => {
-          this.message = 'Error adding investment';
-          console.error(err);
-        }
-      });
+    this.http.post<any>(`${environment.apiBaseUrl}/investments`, body, { headers }).subscribe({
+      next: (res) => {
+        this.message = res.message || 'Investment added successfully!';
+        this.analytics = res.analytics;
+        this.fetchInvestments();
+        this.resetForm();
+      },
+      error: (err) => {
+        console.error('Error adding investment:', err);
+        this.message = 'Error adding investment';
+      }
+    });
   }
 
-  logout() {
+  resetForm(): void {
+    this.asset_name = '';
+    this.asset_type = '';
+    this.units = 0;
+    this.purchase_price = 0;
+    this.current_price = 0;
+  }
+
+  logout(): void {
     localStorage.removeItem('token');
     this.router.navigate(['/login']);
   }
