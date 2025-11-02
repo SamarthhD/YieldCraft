@@ -1,6 +1,9 @@
-version: "3.8"
+
 
 services:
+  
+  # Databases
+  
   postgres:
     image: postgres:15
     container_name: yc_postgres
@@ -20,6 +23,56 @@ services:
       - "27017:27017"
     volumes:
       - mongodata:/data/db
+
+  
+  # Backend API
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yc_backend
+    depends_on:
+      - postgres
+      - mongodb
+    environment:
+      - DATABASE_URL=postgresql://yc_user:yc_pass@postgres:5432/yieldcraft
+      - MONGO_URL=mongodb://yc_mongo:27017/yieldcraft
+    ports:
+      - "5000:5000"
+    restart: always
+
+  
+  # Frontend (Angular)
+  
+  frontend:
+    build:
+      context: ./frontend/yieldcraft-ui
+      dockerfile: Dockerfile
+    container_name: yc_frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+    restart: always
+
+  
+  # Airflow (optional orchestration)
+  
+  airflow:
+    image: apache/airflow:2.10.2
+    container_name: yc_airflow
+    depends_on:
+      - postgres
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__FERNET_KEY=yourfernetkey
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=sqlite:////usr/local/airflow/airflow.db
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    ports:
+      - "8080:8080"
+    restart: always
 
 volumes:
   pgdata:
