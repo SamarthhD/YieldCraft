@@ -1,6 +1,6 @@
-# 💹 YieldCraft Lite
+# 💹 YieldCraft 
 
-YieldCraft Lite is a full-stack investment tracking and analytics application that allows users to manage their assets, visualize performance, and analyze portfolio insights — all in one place.
+YieldCraft  is a full-stack investment tracking and analytics application that allows users to manage their assets, visualize performance, and analyze portfolio insights — all in one place.
 
 ---
 
@@ -122,4 +122,5 @@ Samarth Deshpande
 
 🌐 GitHub
 📧 [samarthdeshpande467@gmail.com]
+
 
