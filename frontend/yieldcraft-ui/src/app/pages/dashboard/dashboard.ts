@@ -11,20 +11,45 @@ import { MatTableModule } from '@angular/material/table';
 import { NgApexchartsModule, ChartComponent } from 'ng-apexcharts';
 import { environment } from '../../../environments/environment';
 
-// ApexCharts types
 import {
   ApexChart,
   ApexNonAxisChartSeries,
   ApexResponsive,
-  ApexLegend
+  ApexLegend,
+  ApexAxisChartSeries,
+  ApexXAxis,
+  ApexYAxis,
+  ApexDataLabels,
+  ApexStroke,
+  ApexPlotOptions
 } from 'ng-apexcharts';
 
-export interface ChartOptions {
+export interface PieChartOptions {
   series: ApexNonAxisChartSeries;
   chart: ApexChart;
   labels: string[];
   responsive: ApexResponsive[];
   legend: ApexLegend;
+}
+
+export interface BarChartOptions {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  yaxis: ApexYAxis;
+  dataLabels: ApexDataLabels;
+  plotOptions: ApexPlotOptions;
+  colors: string[];
+}
+
+export interface DonutChartOptions {
+  series: ApexNonAxisChartSeries;
+  chart: ApexChart;
+  labels: string[];
+  responsive: ApexResponsive[];
+  legend: ApexLegend;
+  colors: string[];
+  plotOptions: ApexPlotOptions;
 }
 
 @Component({
@@ -54,8 +79,8 @@ export class DashboardComponent implements OnInit {
   investments: any[] = [];
   displayedColumns: string[] = ['asset_name', 'asset_type', 'units', 'purchase_price', 'current_price'];
 
-  // Non-optional chart config
-  chartOptions: ChartOptions = {
+  // Pie chart for portfolio distribution
+  pieChartOptions: PieChartOptions = {
     series: [0],
     chart: {
       type: 'pie',
@@ -72,6 +97,81 @@ export class DashboardComponent implements OnInit {
       }
     ],
     legend: { position: 'bottom' }
+  };
+
+  // Bar chart for gain/loss comparison
+  barChartOptions: BarChartOptions = {
+    series: [{
+      name: 'Gain/Loss',
+      data: []
+    }],
+    chart: {
+      type: 'bar',
+      height: 350
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        distributed: true
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    xaxis: {
+      categories: [],
+      labels: {
+        style: {
+          fontSize: '12px'
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Amount (₹)'
+      }
+    },
+    colors: []
+  };
+
+  // Donut chart for investment value distribution
+  donutChartOptions: DonutChartOptions = {
+    series: [0],
+    chart: {
+      type: 'donut',
+      width: 380
+    },
+    labels: ['No Data'],
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: { width: 300 },
+          legend: { position: 'bottom' }
+        }
+      }
+    ],
+    legend: { position: 'bottom' },
+    colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0'],
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '65%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Total Value',
+              formatter: (w: any) => {
+                const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
+                return `₹${total.toFixed(2)}`;
+              }
+            }
+          }
+        }
+      }
+    }
   };
 
   constructor(private http: HttpClient, private router: Router) {}
@@ -92,26 +192,70 @@ export class DashboardComponent implements OnInit {
     this.http.get<any>(`${environment.apiBaseUrl}/investments`, { headers }).subscribe({
       next: (data) => {
         this.investments = data.investments || [];
-        this.updateChart();
+        this.updateCharts();
       },
       error: (err) => console.error('Error fetching investments:', err)
     });
   }
 
-  updateChart(): void {
+  updateCharts(): void {
     if (!this.investments.length) {
-      this.chartOptions.series = [0];
-      this.chartOptions.labels = ['No Data'];
+      this.pieChartOptions = {
+        ...this.pieChartOptions,
+        series: [0],
+        labels: ['No Data']
+      };
+      this.donutChartOptions = {
+        ...this.donutChartOptions,
+        series: [0],
+        labels: ['No Data']
+      };
+      this.barChartOptions = {
+        ...this.barChartOptions,
+        series: [{ name: 'Gain/Loss', data: [] }],
+        xaxis: { ...this.barChartOptions.xaxis, categories: [] }
+      };
       return;
     }
 
-    const grouped: Record<string, number> = {};
+    // Pie Chart: Portfolio distribution by asset type
+    const groupedByType: Record<string, number> = {};
     for (const inv of this.investments) {
-      grouped[inv.asset_type] = (grouped[inv.asset_type] || 0) + inv.units * inv.current_price;
+      groupedByType[inv.asset_type] = (groupedByType[inv.asset_type] || 0) + inv.units * inv.current_price;
     }
+    this.pieChartOptions = {
+      ...this.pieChartOptions,
+      series: Object.values(groupedByType),
+      labels: Object.keys(groupedByType)
+    };
 
-    this.chartOptions.series = Object.values(grouped);
-    this.chartOptions.labels = Object.keys(grouped);
+    // Donut Chart: Individual investment values
+    const investmentValues = this.investments.map(inv => inv.units * inv.current_price);
+    const investmentNames = this.investments.map(inv => inv.asset_name);
+    this.donutChartOptions = {
+      ...this.donutChartOptions,
+      series: investmentValues,
+      labels: investmentNames
+    };
+
+    // Bar Chart: Gain/Loss per investment
+    const gainLossData = this.investments.map(inv => {
+      const purchaseValue = inv.units * inv.purchase_price;
+      const currentValue = inv.units * inv.current_price;
+      return currentValue - purchaseValue;
+    });
+    
+    const colors = gainLossData.map(val => val >= 0 ? '#00E396' : '#FF4560');
+    
+    this.barChartOptions = {
+      ...this.barChartOptions,
+      series: [{
+        name: 'Gain/Loss',
+        data: gainLossData
+      }],
+      xaxis: { ...this.barChartOptions.xaxis, categories: investmentNames },
+      colors: colors
+    };
   }
 
   addInvestment(): void {

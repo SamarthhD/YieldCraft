@@ -1,5 +1,4 @@
 const express = require('express');        // Framework to build APIs
-const bodyParser = require('body-parser'); // Parses incoming JSON
 const cors = require('cors');              // Allows frontend (Angular) to connect
 const bcrypt = require('bcrypt');          // For hashing passwords
 const jwt = require('jsonwebtoken');       // For generating login tokens
@@ -11,7 +10,7 @@ dotenv.config();
 // Basic app setup
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Read configuration from .env
 const JWT_SECRET = process.env.JWT_SECRET || "super_secret_key";

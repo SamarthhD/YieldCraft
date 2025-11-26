@@ -1,5 +1,5 @@
 <div class="dashboard-container">
-  <h2 class="page-title">Investment Dashboard</h2>
+  <h2 class="page-title">Investments Dashboard</h2>
 
   <!-- Investment Form -->
   <form (ngSubmit)="addInvestment()" class="form-section">
@@ -81,27 +81,58 @@
     <mat-card class="analytics-card">
       <h3 class="section-title">Portfolio Analytics</h3>
       <p><b>Total Value:</b> ₹{{ analytics.total_value }}</p>
-     <p>
-  <b>Gain/Loss:</b>
-  <span [ngClass]="analytics.gain_loss_percent >= 0 ? 'gain' : 'loss'">
-    {{ analytics.gain_loss_percent }}%
-  </span>
-</p>
-
+      <p>
+        <b>Gain/Loss:</b>
+        <span [ngClass]="analytics.gain_loss_percent >= 0 ? 'gain' : 'loss'">
+          {{ analytics.gain_loss_percent }}%
+        </span>
+      </p>
       <p><b>Volatility:</b> {{ analytics.volatility }}</p>
       <p><b>Risk:</b> {{ analytics.risk }}</p>
     </mat-card>
 
-    <mat-card class="chart-card">
-      <h3 class="section-title">Performance Chart</h3>
-      <apx-chart
-        [series]="chartOptions.series"
-        [chart]="chartOptions.chart"
-        [labels]="chartOptions.labels"
-        [responsive]="chartOptions.responsive"
-        [legend]="chartOptions.legend">
-      </apx-chart>
-    </mat-card>
+    <!-- Charts Container -->
+    <div class="charts-container">
+      <!-- Pie Chart: Asset Type Distribution -->
+      <mat-card class="chart-card">
+        <h3 class="section-title">Portfolio Distribution by Type</h3>
+        <apx-chart
+          [series]="pieChartOptions.series"
+          [chart]="pieChartOptions.chart"
+          [labels]="pieChartOptions.labels"
+          [responsive]="pieChartOptions.responsive"
+          [legend]="pieChartOptions.legend">
+        </apx-chart>
+      </mat-card>
+
+      <!-- Donut Chart: Individual Investment Values -->
+      <mat-card class="chart-card">
+        <h3 class="section-title">Investment Value Distribution</h3>
+        <apx-chart
+          [series]="donutChartOptions.series"
+          [chart]="donutChartOptions.chart"
+          [labels]="donutChartOptions.labels"
+          [responsive]="donutChartOptions.responsive"
+          [legend]="donutChartOptions.legend"
+          [colors]="donutChartOptions.colors"
+          [plotOptions]="donutChartOptions.plotOptions">
+        </apx-chart>
+      </mat-card>
+
+      <!-- Bar Chart: Gain/Loss per Investment -->
+      <mat-card class="chart-card">
+        <h3 class="section-title">Gain/Loss Analysis</h3>
+        <apx-chart
+          [series]="barChartOptions.series"
+          [chart]="barChartOptions.chart"
+          [xaxis]="barChartOptions.xaxis"
+          [yaxis]="barChartOptions.yaxis"
+          [dataLabels]="barChartOptions.dataLabels"
+          [plotOptions]="barChartOptions.plotOptions"
+          [colors]="barChartOptions.colors">
+        </apx-chart>
+      </mat-card>
+    </div>
   </div>
 
   <!-- Logout -->
